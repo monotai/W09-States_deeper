@@ -1,5 +1,4 @@
-import React from "react";
-
+import { useState, useEffect } from "react";
 import OrderCard from "./components/OrderCard";
 import CheckoutButton from "./components/CheckoutButton";
 
@@ -22,27 +21,38 @@ const ORDERS = [
 ];
 
 export default function App() {
-  const [orders, setOrders] = React.useState(ORDERS);
-  const [value, setValue] = React.useState(3775.8)
-  
-  const changQuantity = (newUpdate) => {
-    setOrders((prevOrders) => [...prevOrders, newUpdate])
-    let newValue = 0.0;
-    orders.forEach(({ price, quantity }) => { newValue += parseFloat(price) * parseFloat(quantity) });
-    console.log(newValue)
-  }
+  const [orders, setOrders] = useState(ORDERS);
+  const [total, setTotal] = useState(3775.8);
+
+  const calculateTotal = () => {
+    const newTotal = orders.reduce((acc, order) => {
+      return acc + order.price * order.quantity;
+    }, 0);
+    setTotal(newTotal);
+  };
+
+  const changeQuantity = (updatedOrder) => {
+    const updatedOrders = orders.map((order) =>
+      order.product === updatedOrder.product ? updatedOrder : order
+    );
+    setOrders(updatedOrders);
+  };
+
+  useEffect(() => {
+    calculateTotal();
+  }, [orders]);
 
   return (
     <>
       <header>
         <h1>Your orders</h1>
       </header>
-
       <div className="order-list">
-        {ORDERS.map((order) => <OrderCard key={order.product} order={order} change={changQuantity}></OrderCard>)}
+        {orders.map((order) => (
+          <OrderCard key={order.product} order={order} change={changeQuantity} />
+        ))}
       </div>
-
-      <CheckoutButton total={`${value}`}></CheckoutButton>
+      <CheckoutButton total={`${total}`}></CheckoutButton>
     </>
   );
 }
